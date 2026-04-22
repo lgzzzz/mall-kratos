@@ -9,7 +9,7 @@ data:
 registry:
   endpoints:
     - "127.0.0.1:2379"
-auth
+auth:
   jwt_secret: "your-jwt-secret-change-in-production"
 grpc_clients:
   inventory_service: "discovery:///inventory-service"
