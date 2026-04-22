@@ -4,3 +4,18 @@
 [submodule "order-service"]
 	path = order-service
 	url = git@github.com:lgzzzz/order-service.git
+[submodule "cart-service"]
+	path = cart-service
+	url = git@github.com:lgzzzz/cart-service.git
+[submodule "payment-service"]
+	path = payment-service
+	url = git@github.com:lgzzzz/payment-service.git
+[submodule "product-service"]
+	path = product-service
+	url = git@github.com:lgzzzz/product-service.git
+[submodule "promotion-service"]
+	path = promotion-service
+	url = git@github.com:lgzzzz/promotion-service.git
+[submodule "user-service"]
+	path = user-service
+	url = git@github.com:lgzzzz/user-service.git
