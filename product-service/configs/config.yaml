@@ -1,0 +1,15 @@
+server:
+  grpc:
+    addr: ":9001"
+    timeout: 10s
+data:
+  database:
+    driver: mysql
+    source: "root:root@tcp(127.0.0.1:3306)/mall_product?charset=utf8mb4&parseTime=True&loc=Local"
+registry:
+  endpoints:
+    - "127.0.0.1:2379"
+auth:
+  jwt_secret: "your-jwt-secret-change-in-production"
+grpc_clients:
+  inventory_service: "discovery:///inventory-service"

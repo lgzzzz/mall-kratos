@@ -1,0 +1,58 @@
+syntax = "proto3";
+
+package payment.v1;
+
+option go_package = "payment-service/api/payment/v1;v1";
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
+
+// 支付状态
+enum PaymentStatus {
+  PAYMENT_STATUS_UNSPECIFIED = 0;
+  PAYMENT_STATUS_PENDING = 1;   // 待支付
+  PAYMENT_STATUS_SUCCESS = 2;   // 支付成功
+  PAYMENT_STATUS_FAILED = 3;    // 支付失败
+  PAYMENT_STATUS_REFUNDED = 4;  // 已退款
+}
+
+// 支付服务定义
+service PaymentService {
+  rpc CreatePayment (CreatePaymentRequest) returns (PaymentReply);
+  rpc GetPayment (GetPaymentRequest) returns (PaymentReply);
+  rpc PaymentCallback (PaymentCallbackRequest) returns (google.protobuf.Empty);
+  rpc Refund (RefundRequest) returns (PaymentReply);
+}
+
+message PaymentReply {
+  string id = 1;
+  string order_id = 2;
+  int64 amount = 3;
+  string currency = 4;
+  PaymentStatus status = 5;
+  string payment_url = 6; // 预支付链接（如果是扫码支付等）
+  google.protobuf.Timestamp created_at = 7;
+  google.protobuf.Timestamp updated_at = 8;
+}
+
+message CreatePaymentRequest {
+  string order_id = 1;
+  int64 amount = 2;
+  string currency = 3;
+}
+
+message GetPaymentRequest {
+  string payment_id = 1;
+}
+
+message PaymentCallbackRequest {
+  string payment_id = 1;
+  PaymentStatus status = 2;
+  string transaction_id = 3; // 三方交易流水号
+}
+
+message RefundRequest {
+  string payment_id = 1;
+  int64 amount = 2;
+  string reason = 3;
+}
