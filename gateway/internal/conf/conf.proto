@@ -1,0 +1,50 @@
+syntax = "proto3";
+
+package gateway.internal.conf;
+
+option go_package = "gateway/internal/conf;conf";
+
+import "google/protobuf/duration.proto";
+
+message Bootstrap {
+  Server server = 1;
+  Data data = 2;
+  Registry registry = 3;
+  Auth auth = 4;
+  RateLimit rate_limit = 5;
+  CircuitBreaker circuit_breaker = 6;
+}
+
+message Server {
+  HTTP http = 1;
+}
+
+message HTTP {
+  string network = 1;
+  string addr = 2;
+  google.protobuf.Duration timeout = 3;
+}
+
+message Data {
+  repeated string etcd_endpoints = 1;
+}
+
+message Registry {
+  repeated string endpoints = 1;
+}
+
+message Auth {
+  string jwt_secret = 1;
+  repeated string whitelist = 2;
+}
+
+message RateLimit {
+  int64 global = 1;
+  map<string, int64> per_path = 2;
+}
+
+message CircuitBreaker {
+  int64 threshold = 1;
+  double error_rate = 2;
+  google.protobuf.Duration recovery_time = 3;
+}

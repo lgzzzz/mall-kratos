@@ -1,0 +1,33 @@
+server:
+  http:
+    network: tcp
+    addr: 0.0.0.0:8000
+    timeout: 10s
+
+data:
+  etcd_endpoints:
+    - 127.0.0.1:2379
+
+registry:
+  endpoints:
+    - 127.0.0.1:2379
+
+auth:
+  jwt_secret: "your-secret-key-change-in-production"
+  whitelist:
+    - "POST:/api/user/v1/register"
+    - "POST:/api/user/v1/login"
+    - "GET:/api/product/v1/products"
+    - "GET:/api/product/v1/product"
+    - "GET:/api/inventory/v1/inventory"
+    - "GET:/api/promotion/v1/promotions"
+
+rate_limit:
+  global: 1000
+  per_path:
+    "/api/user/v1/login": 10
+
+circuit_breaker:
+  threshold: 5
+  error_rate: 0.5
+  recovery_time: 3s
