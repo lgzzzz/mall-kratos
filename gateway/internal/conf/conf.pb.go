@@ -210,6 +210,8 @@ func (x *HTTP) GetTimeout() *durationpb.Duration {
 	return nil
 }
 
+// Data config for etcd-based service discovery and config loading.
+// Uses same etcd cluster as registry in most deployments.
 type Data struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	EtcdEndpoints []string               `protobuf:"bytes,1,rep,name=etcd_endpoints,json=etcdEndpoints,proto3" json:"etcd_endpoints,omitempty"`
@@ -254,6 +256,8 @@ func (x *Data) GetEtcdEndpoints() []string {
 	return nil
 }
 
+// Registry config for self-registration in service discovery.
+// Typically points to the same etcd cluster as data.etcd_endpoints.
 type Registry struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Endpoints     []string               `protobuf:"bytes,1,rep,name=endpoints,proto3" json:"endpoints,omitempty"`
@@ -298,6 +302,8 @@ func (x *Registry) GetEndpoints() []string {
 	return nil
 }
 
+// Auth config for JWT validation.
+// whitelist format: "METHOD:/path" (e.g., "POST:/api/user/v1/login")
 type Auth struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	JwtSecret     string                 `protobuf:"bytes,1,opt,name=jwt_secret,json=jwtSecret,proto3" json:"jwt_secret,omitempty"`
@@ -350,6 +356,9 @@ func (x *Auth) GetWhitelist() []string {
 	return nil
 }
 
+// Rate limit configuration.
+// global: requests per second (rps) applied across all paths.
+// per_path: path-specific limits using exact path prefix as key.
 type RateLimit struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Global        int64                  `protobuf:"varint,1,opt,name=global,proto3" json:"global,omitempty"`

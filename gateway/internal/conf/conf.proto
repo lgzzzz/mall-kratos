@@ -25,19 +25,28 @@ message HTTP {
   google.protobuf.Duration timeout = 3;
 }
 
+// Data config for etcd-based service discovery and config loading.
+// Uses same etcd cluster as registry in most deployments.
 message Data {
   repeated string etcd_endpoints = 1;
 }
 
+// Registry config for self-registration in service discovery.
+// Typically points to the same etcd cluster as data.etcd_endpoints.
 message Registry {
   repeated string endpoints = 1;
 }
 
+// Auth config for JWT validation.
+// whitelist format: "METHOD:/path" (e.g., "POST:/api/user/v1/login")
 message Auth {
   string jwt_secret = 1;
   repeated string whitelist = 2;
 }
 
+// Rate limit configuration.
+// global: requests per second (rps) applied across all paths.
+// per_path: path-specific limits using exact path prefix as key.
 message RateLimit {
   int64 global = 1;
   map<string, int64> per_path = 2;
