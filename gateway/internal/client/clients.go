@@ -11,13 +11,15 @@ import (
 	promoV1 "promotion-service/api/promotion/v1"
 	userV1 "user-service/api/user/v1"
 
+	"github.com/go-kratos/kratos/contrib/registry/etcd/v2"
 	"github.com/go-kratos/kratos/v2/middleware/recovery"
 	"github.com/go-kratos/kratos/v2/registry"
 	kratosgrpc "github.com/go-kratos/kratos/v2/transport/grpc"
-	"github.com/go-kratos/kratos/contrib/registry/etcd/v2"
-	clientv3 "go.etcd.io/etcd/client/v3"
 	"github.com/google/wire"
+	clientv3 "go.etcd.io/etcd/client/v3"
 	"google.golang.org/grpc"
+
+	"gateway/internal/conf"
 )
 
 type Clients struct {
@@ -30,9 +32,9 @@ type Clients struct {
 	Promotion promoV1.PromotionServiceClient
 }
 
-func NewClients(etcdEndpoints []string) (*Clients, error) {
+func NewClients(cfg *conf.Config) (*Clients, error) {
 	etcdClient, err := clientv3.New(clientv3.Config{
-		Endpoints: etcdEndpoints,
+		Endpoints: cfg.Data.EtcdEndpoints,
 	})
 	if err != nil {
 		return nil, err

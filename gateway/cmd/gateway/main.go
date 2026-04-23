@@ -73,11 +73,11 @@ func main() {
 
 func extractConfig(b *conf.Bootstrap) *conf.Config {
 	return &conf.Config{
-		Server:        b.Server,
-		Data:          b.Data,
-		Registry:      b.Registry,
-		Auth:          b.Auth,
-		RateLimit:     b.RateLimit,
+		Server:         b.Server,
+		Data:           b.Data,
+		Registry:       b.Registry,
+		Auth:           b.Auth,
+		RateLimit:      b.RateLimit,
 		CircuitBreaker: b.CircuitBreaker,
 	}
 }
