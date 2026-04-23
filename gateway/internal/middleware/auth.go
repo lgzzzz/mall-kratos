@@ -44,10 +44,13 @@ func ServerAuth(secret string, whitelist []string) middleware.Middleware {
 				return nil, conf.ErrUnauthorized
 			}
 
-			// Parse and validate JWT
-			token, err := jwt.Parse(tokenStr, func(token *jwt.Token) (interface{}, error) {
-				return []byte(secret), nil
-			})
+		// Parse and validate JWT
+		token, err := jwt.Parse(tokenStr, func(token *jwt.Token) (interface{}, error) {
+			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+				return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+			}
+			return []byte(secret), nil
+		})
 			if err != nil || !token.Valid {
 				return nil, conf.ErrUnauthorized
 			}
