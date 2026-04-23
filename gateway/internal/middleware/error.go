@@ -16,7 +16,7 @@ func ResponseError() kratosmiddleware.Middleware {
 			reply, err := handler(ctx, req)
 			if err != nil {
 				e := errors.FromError(err)
-				httpCode := grpcToHTTPCode(e.Code)
+				httpCode := GrpcToHTTPCode(e.Code)
 				return nil, errors.New(httpCode, e.Reason, e.Message)
 			}
 			return reply, err
@@ -24,9 +24,9 @@ func ResponseError() kratosmiddleware.Middleware {
 	}
 }
 
-// grpcToHTTPCode maps gRPC status codes to HTTP status codes.
+// GrpcToHTTPCode maps gRPC status codes to HTTP status codes.
 // Note: grpcCode is always non-zero since this is only called when err != nil.
-func grpcToHTTPCode(grpcCode int32) int {
+func GrpcToHTTPCode(grpcCode int32) int {
 	switch grpcCode {
 	case 3: // InvalidArgument
 		return 400

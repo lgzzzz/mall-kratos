@@ -3,6 +3,7 @@ package middleware
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"strings"
 
 	"github.com/go-kratos/kratos/v2/middleware"
@@ -22,20 +23,39 @@ type AuthInfo struct {
 type authKey struct{}
 
 func ServerAuth(secret string, whitelist []string) middleware.Middleware {
-	whitelistMap := make(map[string]bool, len(whitelist))
+	// Pre-compile whitelist patterns (support {param} placeholders)
+	type whitelistEntry struct {
+		method  string
+		pattern *regexp.Regexp
+	}
+	entries := make([]whitelistEntry, 0, len(whitelist))
 	for _, w := range whitelist {
-		whitelistMap[w] = true
+		parts := strings.SplitN(w, ":", 2)
+		if len(parts) != 2 {
+			continue
+		}
+		method := parts[0]
+		// Convert {param} to regex pattern
+		patternStr := regexp.QuoteMeta(parts[1])
+		patternStr = strings.ReplaceAll(patternStr, `\{[^\}]+\}`, `[^/]+`)
+		patternStr = "^" + patternStr + "$"
+		pattern, err := regexp.Compile(patternStr)
+		if err != nil {
+			continue
+		}
+		entries = append(entries, whitelistEntry{method: method, pattern: pattern})
 	}
 
 	return func(handler middleware.Handler) middleware.Handler {
 		return func(ctx context.Context, req interface{}) (interface{}, error) {
 			// Extract HTTP method and path from context
 			method, path := extractHTTPInfo(ctx)
-			key := method + ":" + path
 
-			// Check whitelist
-			if whitelistMap[key] {
-				return handler(ctx, req)
+			// Check whitelist with pattern matching
+			for _, entry := range entries {
+				if entry.method == method && entry.pattern.MatchString(path) {
+					return handler(ctx, req)
+				}
 			}
 
 			// Extract token

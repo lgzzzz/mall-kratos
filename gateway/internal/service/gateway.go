@@ -104,11 +104,11 @@ func (s *GatewayService) registerInventoryRoutes(srv *kratoshttp.Server) {
 
 func (s *GatewayService) registerPromotionRoutes(srv *kratoshttp.Server) {
 	r := srv.Route("/api/promotion/v1")
-	r.POST("/promotions", s.handlePromotionCreate)
-	r.GET("/promotions/{id}", s.handlePromotionGet)
-	r.GET("/promotions", s.handlePromotionList)
 	r.POST("/coupons", s.handleCouponCreate)
-	r.POST("/coupons/claim", s.handleCouponClaim)
+	r.GET("/coupons", s.handleCouponList)
+	r.POST("/coupons/grant", s.handleCouponGrant)
+	r.POST("/coupons/use", s.handleCouponUse)
+	r.POST("/calculate-discount", s.handleCalculateDiscount)
 }
 
 // ========== User Handlers ==========
@@ -608,28 +608,7 @@ func (s *GatewayService) handleInventoryConfirm(ctx kratoshttp.Context) error {
 
 // ========== Promotion Handlers ==========
 
-func (s *GatewayService) handlePromotionCreate(ctx kratoshttp.Context) error {
-	var req promoV1.CreateCouponRequest
-	if err := ctx.Bind(&req); err != nil {
-		return ctx.JSON(http.StatusBadRequest, errorResponse(err))
-	}
-	resp, err := s.clients.Promotion.CreateCoupon(ctx.Request().Context(), &req)
-	if err != nil {
-		return handleGRPCError(ctx, err)
-	}
-	return ctx.JSON(http.StatusOK, resp)
-}
-
-func (s *GatewayService) handlePromotionGet(ctx kratoshttp.Context) error {
-	req := &promoV1.ListCouponsRequest{}
-	resp, err := s.clients.Promotion.ListCoupons(ctx.Request().Context(), req)
-	if err != nil {
-		return handleGRPCError(ctx, err)
-	}
-	return ctx.JSON(http.StatusOK, resp)
-}
-
-func (s *GatewayService) handlePromotionList(ctx kratoshttp.Context) error {
+func (s *GatewayService) handleCouponList(ctx kratoshttp.Context) error {
 	var req promoV1.ListCouponsRequest
 	if err := ctx.BindQuery(&req); err != nil {
 		return ctx.JSON(http.StatusBadRequest, errorResponse(err))
@@ -653,7 +632,7 @@ func (s *GatewayService) handleCouponCreate(ctx kratoshttp.Context) error {
 	return ctx.JSON(http.StatusOK, resp)
 }
 
-func (s *GatewayService) handleCouponClaim(ctx kratoshttp.Context) error {
+func (s *GatewayService) handleCouponGrant(ctx kratoshttp.Context) error {
 	authInfo, ok := gwMiddleware.GetAuthInfo(ctx.Request().Context())
 	if !ok {
 		return ctx.JSON(http.StatusUnauthorized, errorResponse(errors.Unauthorized("UNAUTHORIZED", "unauthorized")))
@@ -668,6 +647,40 @@ func (s *GatewayService) handleCouponClaim(ctx kratoshttp.Context) error {
 		return handleGRPCError(ctx, err)
 	}
 	return ctx.JSON(http.StatusOK, successResponse())
+}
+
+func (s *GatewayService) handleCouponUse(ctx kratoshttp.Context) error {
+	authInfo, ok := gwMiddleware.GetAuthInfo(ctx.Request().Context())
+	if !ok {
+		return ctx.JSON(http.StatusUnauthorized, errorResponse(errors.Unauthorized("UNAUTHORIZED", "unauthorized")))
+	}
+	var req promoV1.UseCouponRequest
+	if err := ctx.Bind(&req); err != nil {
+		return ctx.JSON(http.StatusBadRequest, errorResponse(err))
+	}
+	req.UserId = authInfo.UserID
+	_, err := s.clients.Promotion.UseCoupon(ctx.Request().Context(), &req)
+	if err != nil {
+		return handleGRPCError(ctx, err)
+	}
+	return ctx.JSON(http.StatusOK, successResponse())
+}
+
+func (s *GatewayService) handleCalculateDiscount(ctx kratoshttp.Context) error {
+	authInfo, ok := gwMiddleware.GetAuthInfo(ctx.Request().Context())
+	if !ok {
+		return ctx.JSON(http.StatusUnauthorized, errorResponse(errors.Unauthorized("UNAUTHORIZED", "unauthorized")))
+	}
+	var req promoV1.CalculateDiscountRequest
+	if err := ctx.Bind(&req); err != nil {
+		return ctx.JSON(http.StatusBadRequest, errorResponse(err))
+	}
+	req.UserId = authInfo.UserID
+	resp, err := s.clients.Promotion.CalculateDiscount(ctx.Request().Context(), &req)
+	if err != nil {
+		return handleGRPCError(ctx, err)
+	}
+	return ctx.JSON(http.StatusOK, resp)
 }
 
 // ========== Helper Functions ==========
@@ -689,28 +702,11 @@ func handleGRPCError(ctx kratoshttp.Context, err error) error {
 		return nil
 	}
 	e := errors.FromError(err)
-	return ctx.JSON(grpcToHTTPCode(e.Code), map[string]interface{}{
+	return ctx.JSON(gwMiddleware.GrpcToHTTPCode(e.Code), map[string]interface{}{
 		"code":    e.Code,
 		"reason":  e.Reason,
 		"message": e.Message,
 	})
-}
-
-func grpcToHTTPCode(grpcCode int32) int {
-	switch grpcCode {
-	case 3:
-		return http.StatusBadRequest
-	case 16:
-		return http.StatusUnauthorized
-	case 7:
-		return http.StatusForbidden
-	case 5:
-		return http.StatusNotFound
-	case 6:
-		return http.StatusConflict
-	default:
-		return http.StatusInternalServerError
-	}
 }
 
 func errorResponse(err error) map[string]interface{} {

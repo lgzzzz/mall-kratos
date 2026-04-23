@@ -18,8 +18,8 @@ auth:
     - "POST:/api/user/v1/register"
     - "POST:/api/user/v1/login"
     - "GET:/api/product/v1/products"
-    - "GET:/api/product/v1/product"
-    - "GET:/api/inventory/v1/inventory"
+    - "GET:/api/product/v1/products/{id}"
+    - "GET:/api/inventory/v1/inventory/{id}"
     - "GET:/api/promotion/v1/promotions"
 
 rate_limit:

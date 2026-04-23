@@ -12,6 +12,7 @@ import (
 	userV1 "user-service/api/user/v1"
 
 	"github.com/go-kratos/kratos/contrib/registry/etcd/v2"
+	"github.com/go-kratos/kratos/v2/middleware/circuitbreaker"
 	"github.com/go-kratos/kratos/v2/middleware/recovery"
 	"github.com/go-kratos/kratos/v2/registry"
 	kratosgrpc "github.com/go-kratos/kratos/v2/transport/grpc"
@@ -30,6 +31,8 @@ type Clients struct {
 	Payment   paymentV1.PaymentServiceClient
 	Inventory invV1.InventoryClient
 	Promotion promoV1.PromotionServiceClient
+
+	conns []*grpc.ClientConn
 }
 
 func NewClients(cfg *conf.Config) (*Clients, error) {
@@ -42,30 +45,118 @@ func NewClients(cfg *conf.Config) (*Clients, error) {
 
 	discovery := etcd.New(etcdClient)
 
-	return &Clients{
-		User:      userV1.NewUserServiceClient(newGRPCClient(discovery, "discovery:///user-service")),
-		Product:   productV1.NewProductServiceClient(newGRPCClient(discovery, "discovery:///product-service")),
-		Order:     orderV1.NewOrderServiceClient(newGRPCClient(discovery, "discovery:///order-service")),
-		Cart:      cartV1.NewCartServiceClient(newGRPCClient(discovery, "discovery:///cart-service")),
-		Payment:   paymentV1.NewPaymentServiceClient(newGRPCClient(discovery, "discovery:///payment-service")),
-		Inventory: invV1.NewInventoryClient(newGRPCClient(discovery, "discovery:///inventory-service")),
-		Promotion: promoV1.NewPromotionServiceClient(newGRPCClient(discovery, "discovery:///promotion-service")),
-	}, nil
+	c := &Clients{}
+
+	c.User, err = newUserClient(discovery, "discovery:///user-service", &c.conns)
+	if err != nil {
+		return nil, err
+	}
+	c.Product, err = newProductClient(discovery, "discovery:///product-service", &c.conns)
+	if err != nil {
+		return nil, err
+	}
+	c.Order, err = newOrderClient(discovery, "discovery:///order-service", &c.conns)
+	if err != nil {
+		return nil, err
+	}
+	c.Cart, err = newCartClient(discovery, "discovery:///cart-service", &c.conns)
+	if err != nil {
+		return nil, err
+	}
+	c.Payment, err = newPaymentClient(discovery, "discovery:///payment-service", &c.conns)
+	if err != nil {
+		return nil, err
+	}
+	c.Inventory, err = newInventoryClient(discovery, "discovery:///inventory-service", &c.conns)
+	if err != nil {
+		return nil, err
+	}
+	c.Promotion, err = newPromotionClient(discovery, "discovery:///promotion-service", &c.conns)
+	if err != nil {
+		return nil, err
+	}
+
+	return c, nil
 }
 
-func newGRPCClient(r registry.Discovery, endpoint string) *grpc.ClientConn {
+func (c *Clients) Close() error {
+	for _, conn := range c.conns {
+		conn.Close()
+	}
+	return nil
+}
+
+func newUserClient(r registry.Discovery, endpoint string, conns *[]*grpc.ClientConn) (userV1.UserServiceClient, error) {
+	conn, err := newGRPCClient(r, endpoint, conns)
+	if err != nil {
+		return nil, err
+	}
+	return userV1.NewUserServiceClient(conn), nil
+}
+
+func newProductClient(r registry.Discovery, endpoint string, conns *[]*grpc.ClientConn) (productV1.ProductServiceClient, error) {
+	conn, err := newGRPCClient(r, endpoint, conns)
+	if err != nil {
+		return nil, err
+	}
+	return productV1.NewProductServiceClient(conn), nil
+}
+
+func newOrderClient(r registry.Discovery, endpoint string, conns *[]*grpc.ClientConn) (orderV1.OrderServiceClient, error) {
+	conn, err := newGRPCClient(r, endpoint, conns)
+	if err != nil {
+		return nil, err
+	}
+	return orderV1.NewOrderServiceClient(conn), nil
+}
+
+func newCartClient(r registry.Discovery, endpoint string, conns *[]*grpc.ClientConn) (cartV1.CartServiceClient, error) {
+	conn, err := newGRPCClient(r, endpoint, conns)
+	if err != nil {
+		return nil, err
+	}
+	return cartV1.NewCartServiceClient(conn), nil
+}
+
+func newPaymentClient(r registry.Discovery, endpoint string, conns *[]*grpc.ClientConn) (paymentV1.PaymentServiceClient, error) {
+	conn, err := newGRPCClient(r, endpoint, conns)
+	if err != nil {
+		return nil, err
+	}
+	return paymentV1.NewPaymentServiceClient(conn), nil
+}
+
+func newInventoryClient(r registry.Discovery, endpoint string, conns *[]*grpc.ClientConn) (invV1.InventoryClient, error) {
+	conn, err := newGRPCClient(r, endpoint, conns)
+	if err != nil {
+		return nil, err
+	}
+	return invV1.NewInventoryClient(conn), nil
+}
+
+func newPromotionClient(r registry.Discovery, endpoint string, conns *[]*grpc.ClientConn) (promoV1.PromotionServiceClient, error) {
+	conn, err := newGRPCClient(r, endpoint, conns)
+	if err != nil {
+		return nil, err
+	}
+	return promoV1.NewPromotionServiceClient(conn), nil
+}
+
+func newGRPCClient(r registry.Discovery, endpoint string, conns *[]*grpc.ClientConn) (*grpc.ClientConn, error) {
 	conn, err := kratosgrpc.DialInsecure(
 		context.Background(),
 		kratosgrpc.WithEndpoint(endpoint),
 		kratosgrpc.WithDiscovery(r),
 		kratosgrpc.WithMiddleware(
 			recovery.Recovery(),
+			circuitbreaker.Client(),
 		),
 	)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
-	return conn
+	*conns = append(*conns, conn)
+	return conn, nil
 }
 
 var ProviderSet = wire.NewSet(NewClients)
