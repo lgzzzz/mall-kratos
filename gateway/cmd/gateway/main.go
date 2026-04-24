@@ -12,7 +12,7 @@ import (
 	"github.com/go-kratos/kratos/v2/config/file"
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/go-kratos/kratos/v2/transport/http"
-	"github.com/lgzzz/mall-tracing/tracing"
+	"github.com/lgzzzz/mall-tracing/tracing"
 	"go.opentelemetry.io/otel/trace"
 )
 

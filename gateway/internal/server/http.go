@@ -6,7 +6,7 @@ import (
 	"github.com/go-kratos/kratos/v2/middleware/ratelimit"
 	"github.com/go-kratos/kratos/v2/middleware/recovery"
 	"github.com/go-kratos/kratos/v2/transport/http"
-	"github.com/lgzzz/mall-tracing/middleware"
+	"github.com/lgzzzz/mall-tracing/middleware"
 
 	"gateway/internal/conf"
 	gwMiddleware "gateway/internal/middleware"
