@@ -6,16 +6,19 @@ import (
 	"github.com/go-kratos/kratos/v2/middleware/ratelimit"
 	"github.com/go-kratos/kratos/v2/middleware/recovery"
 	"github.com/go-kratos/kratos/v2/transport/http"
+	"github.com/lgzzz/mall-tracing/middleware"
 
 	"gateway/internal/conf"
 	gwMiddleware "gateway/internal/middleware"
 	"gateway/internal/service"
+	"go.opentelemetry.io/otel/trace"
 )
 
 func NewHTTPServer(
 	cfg *conf.Config,
 	gw *service.GatewayService,
 	logger log.Logger,
+	tracer trace.Tracer,
 ) *http.Server {
 	var opts = []http.ServerOption{
 		http.Address(cfg.Server.Http.Addr),
@@ -24,6 +27,7 @@ func NewHTTPServer(
 			recovery.Recovery(),
 			logging.Server(logger),
 			ratelimit.Server(),
+			middleware.ServerMiddleware(tracer),
 			gwMiddleware.ResponseError(),
 			gwMiddleware.ServerAuth(cfg.Auth.JwtSecret, cfg.Auth.Whitelist),
 		),

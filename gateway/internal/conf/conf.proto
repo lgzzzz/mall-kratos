@@ -13,6 +13,7 @@ message Bootstrap {
   Auth auth = 4;
   RateLimit rate_limit = 5;
   CircuitBreaker circuit_breaker = 6;
+  Tracing tracing = 7;
 }
 
 message Server {
@@ -56,4 +57,10 @@ message CircuitBreaker {
   int64 threshold = 1;
   double error_rate = 2;
   google.protobuf.Duration recovery_time = 3;
+}
+
+message Tracing {
+  bool enabled = 1;
+  string endpoint = 2;
+  double sample_ratio = 3;
 }

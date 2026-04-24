@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"os"
 
@@ -11,6 +12,8 @@ import (
 	"github.com/go-kratos/kratos/v2/config/file"
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/go-kratos/kratos/v2/transport/http"
+	"github.com/lgzzz/mall-tracing/tracing"
+	"go.opentelemetry.io/otel/trace"
 )
 
 // go build -ldflags "-X main.Version=x.y.z"
@@ -60,7 +63,25 @@ func main() {
 
 	cfg := extractConfig(&bootstrap)
 
-	app, cleanup, err := wireApp(cfg, logger)
+	var tp trace.TracerProvider
+	tracer := tracing.NewTracer("gateway")
+	if cfg.Tracing != nil && cfg.Tracing.Enabled {
+		var err error
+		tp, err = tracing.Init(tracing.Config{
+			ServiceName:  "gateway",
+			Version:     Version,
+			OTLPEndpoint: cfg.Tracing.Endpoint,
+			SampleRatio:  cfg.Tracing.SampleRatio,
+			Insecure:    true,
+		})
+		if err != nil {
+			h.Errorf("failed to init tracer provider: %v", err)
+		} else {
+			h.Info("Tracer provider initialized")
+		}
+	}
+
+	app, cleanup, err := wireApp(cfg, logger, tracer)
 	if err != nil {
 		h.Fatalf("failed to wire app: %v", err)
 	}
@@ -68,6 +89,14 @@ func main() {
 
 	if err := app.Run(); err != nil {
 		h.Fatalf("failed to run app: %v", err)
+	}
+
+	if tp != nil {
+		shutdownCtx, cancel := context.WithTimeout(context.Background(), 5e9)
+		defer cancel()
+		if err := tracing.Shutdown(shutdownCtx, tp); err != nil {
+			h.Errorf("failed to shutdown tracer provider: %v", err)
+		}
 	}
 }
 
@@ -79,5 +108,6 @@ func extractConfig(b *conf.Bootstrap) *conf.Config {
 		Auth:           b.Auth,
 		RateLimit:      b.RateLimit,
 		CircuitBreaker: b.CircuitBreaker,
+		Tracing:        b.Tracing,
 	}
 }

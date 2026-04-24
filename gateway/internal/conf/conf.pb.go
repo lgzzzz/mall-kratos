@@ -30,6 +30,7 @@ type Bootstrap struct {
 	Auth           *Auth                  `protobuf:"bytes,4,opt,name=auth,proto3" json:"auth,omitempty"`
 	RateLimit      *RateLimit             `protobuf:"bytes,5,opt,name=rate_limit,json=rateLimit,proto3" json:"rate_limit,omitempty"`
 	CircuitBreaker *CircuitBreaker        `protobuf:"bytes,6,opt,name=circuit_breaker,json=circuitBreaker,proto3" json:"circuit_breaker,omitempty"`
+	Tracing        *Tracing               `protobuf:"bytes,7,opt,name=tracing,proto3" json:"tracing,omitempty"`
 	unknownFields  protoimpl.UnknownFields
 	sizeCache      protoimpl.SizeCache
 }
@@ -102,6 +103,13 @@ func (x *Bootstrap) GetRateLimit() *RateLimit {
 func (x *Bootstrap) GetCircuitBreaker() *CircuitBreaker {
 	if x != nil {
 		return x.CircuitBreaker
+	}
+	return nil
+}
+
+func (x *Bootstrap) GetTracing() *Tracing {
+	if x != nil {
+		return x.Tracing
 	}
 	return nil
 }
@@ -471,11 +479,71 @@ func (x *CircuitBreaker) GetRecoveryTime() *durationpb.Duration {
 	return nil
 }
 
+type Tracing struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Enabled       bool                   `protobuf:"varint,1,opt,name=enabled,proto3" json:"enabled,omitempty"`
+	Endpoint      string                 `protobuf:"bytes,2,opt,name=endpoint,proto3" json:"endpoint,omitempty"`
+	SampleRatio   float64                `protobuf:"fixed64,3,opt,name=sample_ratio,json=sampleRatio,proto3" json:"sample_ratio,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Tracing) Reset() {
+	*x = Tracing{}
+	mi := &file_conf_conf_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Tracing) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Tracing) ProtoMessage() {}
+
+func (x *Tracing) ProtoReflect() protoreflect.Message {
+	mi := &file_conf_conf_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Tracing.ProtoReflect.Descriptor instead.
+func (*Tracing) Descriptor() ([]byte, []int) {
+	return file_conf_conf_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *Tracing) GetEnabled() bool {
+	if x != nil {
+		return x.Enabled
+	}
+	return false
+}
+
+func (x *Tracing) GetEndpoint() string {
+	if x != nil {
+		return x.Endpoint
+	}
+	return ""
+}
+
+func (x *Tracing) GetSampleRatio() float64 {
+	if x != nil {
+		return x.SampleRatio
+	}
+	return 0
+}
+
 var File_conf_conf_proto protoreflect.FileDescriptor
 
 const file_conf_conf_proto_rawDesc = "" +
 	"\n" +
-	"\x0fconf/conf.proto\x12\x15gateway.internal.conf\x1a\x1egoogle/protobuf/duration.proto\"\xf2\x02\n" +
+	"\x0fconf/conf.proto\x12\x15gateway.internal.conf\x1a\x1egoogle/protobuf/duration.proto\"\xac\x03\n" +
 	"\tBootstrap\x125\n" +
 	"\x06server\x18\x01 \x01(\v2\x1d.gateway.internal.conf.ServerR\x06server\x12/\n" +
 	"\x04data\x18\x02 \x01(\v2\x1b.gateway.internal.conf.DataR\x04data\x12;\n" +
@@ -483,7 +551,8 @@ const file_conf_conf_proto_rawDesc = "" +
 	"\x04auth\x18\x04 \x01(\v2\x1b.gateway.internal.conf.AuthR\x04auth\x12?\n" +
 	"\n" +
 	"rate_limit\x18\x05 \x01(\v2 .gateway.internal.conf.RateLimitR\trateLimit\x12N\n" +
-	"\x0fcircuit_breaker\x18\x06 \x01(\v2%.gateway.internal.conf.CircuitBreakerR\x0ecircuitBreaker\"9\n" +
+	"\x0fcircuit_breaker\x18\x06 \x01(\v2%.gateway.internal.conf.CircuitBreakerR\x0ecircuitBreaker\x128\n" +
+	"\atracing\x18\a \x01(\v2\x1e.gateway.internal.conf.TracingR\atracing\"9\n" +
 	"\x06Server\x12/\n" +
 	"\x04http\x18\x01 \x01(\v2\x1b.gateway.internal.conf.HTTPR\x04http\"i\n" +
 	"\x04HTTP\x12\x18\n" +
@@ -508,7 +577,11 @@ const file_conf_conf_proto_rawDesc = "" +
 	"\tthreshold\x18\x01 \x01(\x03R\tthreshold\x12\x1d\n" +
 	"\n" +
 	"error_rate\x18\x02 \x01(\x01R\terrorRate\x12>\n" +
-	"\rrecovery_time\x18\x03 \x01(\v2\x19.google.protobuf.DurationR\frecoveryTimeB\x1cZ\x1agateway/internal/conf;confb\x06proto3"
+	"\rrecovery_time\x18\x03 \x01(\v2\x19.google.protobuf.DurationR\frecoveryTime\"b\n" +
+	"\aTracing\x12\x18\n" +
+	"\aenabled\x18\x01 \x01(\bR\aenabled\x12\x1a\n" +
+	"\bendpoint\x18\x02 \x01(\tR\bendpoint\x12!\n" +
+	"\fsample_ratio\x18\x03 \x01(\x01R\vsampleRatioB\x1cZ\x1agateway/internal/conf;confb\x06proto3"
 
 var (
 	file_conf_conf_proto_rawDescOnce sync.Once
@@ -522,7 +595,7 @@ func file_conf_conf_proto_rawDescGZIP() []byte {
 	return file_conf_conf_proto_rawDescData
 }
 
-var file_conf_conf_proto_msgTypes = make([]protoimpl.MessageInfo, 9)
+var file_conf_conf_proto_msgTypes = make([]protoimpl.MessageInfo, 10)
 var file_conf_conf_proto_goTypes = []any{
 	(*Bootstrap)(nil),           // 0: gateway.internal.conf.Bootstrap
 	(*Server)(nil),              // 1: gateway.internal.conf.Server
@@ -532,8 +605,9 @@ var file_conf_conf_proto_goTypes = []any{
 	(*Auth)(nil),                // 5: gateway.internal.conf.Auth
 	(*RateLimit)(nil),           // 6: gateway.internal.conf.RateLimit
 	(*CircuitBreaker)(nil),      // 7: gateway.internal.conf.CircuitBreaker
-	nil,                         // 8: gateway.internal.conf.RateLimit.PerPathEntry
-	(*durationpb.Duration)(nil), // 9: google.protobuf.Duration
+	(*Tracing)(nil),             // 8: gateway.internal.conf.Tracing
+	nil,                         // 9: gateway.internal.conf.RateLimit.PerPathEntry
+	(*durationpb.Duration)(nil), // 10: google.protobuf.Duration
 }
 var file_conf_conf_proto_depIdxs = []int32{
 	1,  // 0: gateway.internal.conf.Bootstrap.server:type_name -> gateway.internal.conf.Server
@@ -542,15 +616,16 @@ var file_conf_conf_proto_depIdxs = []int32{
 	5,  // 3: gateway.internal.conf.Bootstrap.auth:type_name -> gateway.internal.conf.Auth
 	6,  // 4: gateway.internal.conf.Bootstrap.rate_limit:type_name -> gateway.internal.conf.RateLimit
 	7,  // 5: gateway.internal.conf.Bootstrap.circuit_breaker:type_name -> gateway.internal.conf.CircuitBreaker
-	2,  // 6: gateway.internal.conf.Server.http:type_name -> gateway.internal.conf.HTTP
-	9,  // 7: gateway.internal.conf.HTTP.timeout:type_name -> google.protobuf.Duration
-	8,  // 8: gateway.internal.conf.RateLimit.per_path:type_name -> gateway.internal.conf.RateLimit.PerPathEntry
-	9,  // 9: gateway.internal.conf.CircuitBreaker.recovery_time:type_name -> google.protobuf.Duration
-	10, // [10:10] is the sub-list for method output_type
-	10, // [10:10] is the sub-list for method input_type
-	10, // [10:10] is the sub-list for extension type_name
-	10, // [10:10] is the sub-list for extension extendee
-	0,  // [0:10] is the sub-list for field type_name
+	8,  // 6: gateway.internal.conf.Bootstrap.tracing:type_name -> gateway.internal.conf.Tracing
+	2,  // 7: gateway.internal.conf.Server.http:type_name -> gateway.internal.conf.HTTP
+	10, // 8: gateway.internal.conf.HTTP.timeout:type_name -> google.protobuf.Duration
+	9,  // 9: gateway.internal.conf.RateLimit.per_path:type_name -> gateway.internal.conf.RateLimit.PerPathEntry
+	10, // 10: gateway.internal.conf.CircuitBreaker.recovery_time:type_name -> google.protobuf.Duration
+	11, // [11:11] is the sub-list for method output_type
+	11, // [11:11] is the sub-list for method input_type
+	11, // [11:11] is the sub-list for extension type_name
+	11, // [11:11] is the sub-list for extension extendee
+	0,  // [0:11] is the sub-list for field type_name
 }
 
 func init() { file_conf_conf_proto_init() }
@@ -564,7 +639,7 @@ func file_conf_conf_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_conf_conf_proto_rawDesc), len(file_conf_conf_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   9,
+			NumMessages:   10,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

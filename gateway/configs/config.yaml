@@ -31,3 +31,8 @@ circuit_breaker:
   threshold: 5
   error_rate: 0.5
   recovery_time: 3s
+
+tracing:
+  enabled: true
+  endpoint: "localhost:4317"
+  sample_ratio: 0.1
