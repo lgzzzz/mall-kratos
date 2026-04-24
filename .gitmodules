@@ -19,3 +19,6 @@
 [submodule "user-service"]
 	path = user-service
 	url = git@github.com:lgzzzz/user-service.git
+[submodule "mall-gateway"]
+	path = mall-gateway
+	url = git@github.com:lgzzzz/mall-gateway.git
