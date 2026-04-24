@@ -2,8 +2,8 @@ go 1.25.0
 
 use (
 	./cart-service
-	./mall-gateway
 	./inventory-service
+	./mall-gateway
 	./order-service
 	./payment-service
 	./product-service
